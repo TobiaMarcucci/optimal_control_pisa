@@ -595,7 +595,7 @@ Other classes of functions could do the job, but polynomials have many other use
 %\end{block}
 %\end{frame}
 
-\begin{frame}{The power of SOS optimization \href{https://colab.research.google.com/github/RussTedrake/underactuated/blob/master/examples/optimization.ipynb}{\beamergotobutton{Try this in Drake}}}
+\begin{frame}{The power of SOS optimization \href{https://colab.research.google.com/github/TobiaMarcucci/optimal_control_pisa/blob/master/demos/six_hump_camel.ipynb}{\beamergotobutton{Try this in Drake}}}
 \begin{columns}
 	\column{.7\textwidth}
 \begin{itemize}
@@ -612,8 +612,6 @@ Write it as
 \end{align*}
 \item
 Where ``is SOS'' means ``equal to a SOS polynomial in $x$ parameterized by $Q$''
-\item
-We recover the global minimum!
 \end{itemize}
 \column{.3\textwidth}
 \vspace{-5mm}
@@ -650,7 +648,7 @@ However, counterexamples are ``rare enough that people give names to them''
 \includegraphics[width=\columnwidth]{figures/motzkin.pdf}
 \end{figure}
 \end{columns}
-\footnotetext[1]{Hilbert - "Ueber die Darstellung definiter Formen als Summe von Formenquadraten"}
+\footnotetext[1]{Hilbert - ``Ueber die Darstellung definiter Formen als Summe von Formenquadraten''}
 \footnotetext[2]{See also \href{https://en.wikipedia.org/wiki/Hilbert\%27s_seventeenth_problem}{{\color{blue}Hilbert's 17th problem}}}
 \end{frame}
 
@@ -726,7 +724,7 @@ $$
 \end{itemize}
 \column{.4\textwidth}
 \begin{figure}
-	\includegraphics[width=\columnwidth]{figures/lyapunov_fun.pdf}
+	\includegraphics[width=\columnwidth]{figures/lyapunov_poly.pdf}
 \end{figure}
 \end{columns}
 \end{frame}
@@ -752,7 +750,8 @@ If $f(x)$ is not polynomial we can use, e.g., Taylor approximation
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Design of Lyapunov functions via SOS}
+\begin{frame}{Design of Lyapunov functions via SOS
+\href{https://colab.research.google.com/github/TobiaMarcucci/optimal_control_pisa/blob/master/demos/lyapunov_poly.ipynb}{\beamergotobutton{Try this in Drake}}}
 \begin{block}{The overall SOS program}
 $$
 \text{find } v(x) \text{ SOS} : \frac{\partial v}{\partial x}(x) f(x) \text{ is SOS}
@@ -761,37 +760,85 @@ $$
 Miscellaneous observations:
 \begin{itemize}
 \item
-To avoid the trivial solution $v(x) = 0$ and ensure asymptotic stability we can require
-$$
-\frac{\partial v}{\partial x}(x) f(x) - \varepsilon \|x\|^2 \text{ is SOS}
-$$
+To avoid the trivial solution $v(x) = 0$ we can add a linear constraint like $v(1) = 1$
 \item
 Be aware: not all the stable polynomial systems admit a polynomial Lyapunov function\footnote{Ahmadi, Krstic, Parrilo - ``A Globally Asymptotically Stable Polynomial Vector Field with no Polynomial Lyapunov Function''}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Drake demo}
-
-Verify a Lypaunov function
-
-Find a Lyapunov function
-
-\end{frame}
-
-\begin{frame}{Rigid-body dynamics are (rational) polynomials}
-	
-Trick for the pendulum
-	
-Drake demo with the pendulum
-	
+\begin{frame}{Verification of nonpolynomial systems via SOS
+\href{https://colab.research.google.com/github/TobiaMarcucci/optimal_control_pisa/blob/master/demos/lyapunov_pendulum.ipynb}{\beamergotobutton{Try this in Drake}}}
+\begin{columns}
+\column{.65\textwidth}
+\begin{itemize}
+\item
+Some non-polynomial systems can be verified exactly using SOS\footnotemark
+$$
+\dot x_1 = x_2, \quad
+\dot x_2 = - x_2 - \sin(x_1)
+$$
+\item
+Introduce auxiliary variables $s = \sin(x_1)$, $c = \cos(x_1)$
+\item
+Substitute to get the polynomial system
+$$
+\dot s = c x_2, \quad
+\dot c = - s x_2, \quad
+\dot x_2 = - x_2 - s
+$$
+subject to the polynomial constraint $s^2 + c^2 = 1$
+\end{itemize}
+\column{.3\textwidth}
+\begin{figure}[h]
+\includegraphics[width=.3\columnwidth]{figures/simple_pend.png}
+\end{figure}
+\begin{figure}[h]
+	\includegraphics[width=\columnwidth]{figures/lyapunov_pendulum.pdf}
+\end{figure}
+\end{columns}
+\footnotetext[1]{See also Papachristodoulou, Prajna - ``Analysis of Non-polynomial Systems using the Sum of Squares Decomposition''}
 \end{frame}
 
 \begin{frame}{Bonus: approximation of region of attraction}
-Show Shen's Van der Pol
+Time-reversed Van der Pol oscillator
+\begin{align*}
+\dot x_1 &= - x_2 \\
+\dot x_2 &= x_1 + (x_1^2 - 1) x_2
+\end{align*}
+\begin{columns}
+\column{.5\textwidth}
+Maximize volume of level set
+\begin{figure}[h]
+\includegraphics[width=.5\columnwidth]{figures/van_der_pol_roa_quadratic.pdf}
+\end{figure}
+\column{.5\textwidth}
+Alternate between maximization of level set and reshape Lyapunov function
+\begin{figure}[h]
+\includegraphics[width=.55\columnwidth]{figures/van_der_pol_roa.png}
+\end{figure}
+\end{columns}
 \end{frame}
 
-\begin{frame}{Control Lypaunov function}
-Control Lypaunov function is not convex
+\begin{frame}{Control-Lypaunov function}
+Can use use SOS + Lyapunov verification to design controllers? Unfortunately no...
+\begin{itemize}
+\item
+We let $v(x)$ be a SOS polynomial
+\item
+We use a linear parameterization for $u(x)$ (polynomial)
+\item
+For simplicity, let the system be polynomial and control-affine
+$$
+\dot x = f(x) + G(x) u
+$$
+\item
+Lyapunov condition becomes
+$$
+- \frac{\partial v}{\partial x}(x) [f(x) + G(x) u(x)] \text{ is SOS}
+$$
+\item
+Multiplication of $\frac{\partial v}{\partial x}$ and $u$ leads to \textbf{nonlinear equality constraints}
+\end{itemize}
 \end{frame}
 
 \section{Approximate dynamic programming}
