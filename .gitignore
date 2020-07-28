@@ -3,7 +3,10 @@
 *.blg
 *.bst
 *.log
+*.nav
 *.out
+*.snm
+*.toc
 *.key
 *.synctex.gz
 .DS_store

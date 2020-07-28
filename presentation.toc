@@ -1,6 +1,0 @@
-\beamer@sectionintoc {1}{Introduction}{2}{0}{1}
-\beamer@sectionintoc {2}{Convex-optimization background}{8}{0}{2}
-\beamer@sectionintoc {3}{Sums-of-squares optimization}{15}{0}{3}
-\beamer@sectionintoc {4}{Design of Lyapunov functions}{26}{0}{4}
-\beamer@sectionintoc {5}{Approximate dynamic programming}{35}{0}{5}
-\beamer@sectionintoc {6}{Bibliography}{37}{0}{6}
