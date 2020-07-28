@@ -41,11 +41,11 @@ The main topic so far:
 v(x_0) := \min_{u, x} \ &\int_0^\infty l(x(t), u(t)) dt \\
 \text{subject to} \ & x(0) = x_0 \\
 & \dot x(t) = f(x(t), u(t)), &&  \text{for all }t \in [0, \infty) \\
-& u(t) \in U, &&  \text{for all }t \in [0, \infty) \\
+& u(t) \in U, &&  \text{for all }t \in [0, \infty)
 \end{align*}
 \begin{itemize}
 \item
-Can be tackled \textbf{analytically} using Pontryagin's minimum principle:
+Pontryagin's minimum principle (\textbf{analytical}):
 \begin{itemize}
 \item
 necessary conditions for optimality as a two-point boundary value problem
@@ -53,7 +53,7 @@ necessary conditions for optimality as a two-point boundary value problem
 closed-form solution only in very few special cases
 \end{itemize}
 \item
-Can be tackled \textbf{numerically} using numerical optimization:
+Numerical optimization (\textbf{numerical}):
 \begin{itemize}
 \item
 in general, a nonconvex program
@@ -86,7 +86,9 @@ converges to zero
 \includegraphics[width=\columnwidth]{figures/simple_pend.png}
 \end{figure}
 \end{columns}
-\textbf{Lyapunov theorem}: ``$\dot x = f(x)$ is stable if there exists $v(x) \geq 0$ such that $\dot v(x) = \frac{\partial v}{\partial x} (x) f(x) \leq 0$''
+\begin{block}{Lyapunov theorem}
+``$\dot x = f(x)$ is stable if there exists $v(x) \geq 0$ such that $\dot v(x) = \frac{\partial v}{\partial x} (x) f(x) \leq 0$''
+\end{block}
 \end{frame}
 
 \begin{frame}{Dynamic programming}
@@ -848,22 +850,175 @@ Multiplication of $\frac{\partial v}{\partial x}$ and $u$ leads to \textbf{nonli
 {\color{darkred} Approximate dynamic programming}
 \end{frame}
 
-\begin{frame}
-The HJB equation
+\begin{frame}{Hamilton-Jacobi-Bellman (HJB) equation}
+How to arrive to the HJB equation
+\begin{align*}
+\min_{u \in U} \left\{ l(x, u) + \frac{\partial v}{\partial x} (x) f(x, u) \right\} = 0, \quad \text{for all } x
+\end{align*}
+from the Optimal Control Problem (OCP)
+\begin{align*}
+v(x_0) := \min_{u, x} \ &\int_0^\infty l(x(t), u(t)) dt \\
+\text{subject to} \ & x(0) = x_0 \\
+& \dot x(t) = f(x(t), u(t)), &&  \text{for all }t \in [0, \infty) \\
+& u(t) \in U, &&  \text{for all }t \in [0, \infty)
+\end{align*}
+\end{frame}
 
-Derivation of HJB
+\begin{frame}{HJB: informal derivation}
+First order approximation of the control problem with time step $h$:
+\begin{itemize}
+\item
+Cost function
+$$
+\int_0^\infty l(x(t), u(t)) dt
+\approx
+h \sum_{t=0}^\infty l(x_t, u_t)
+$$
+\item
+Dynamics
+$$
+\dot x(t) = f(x(t), u(t))
+\Rightarrow
+x_{t+1} = x_t + h f(x_t, u_t)
+$$
+\item
+Overall
+\begin{align*}
+v(x_0) := \min_{u, x} \ &h \sum_{t=0}^\infty l(x_t, u_t) \\
+\text{subject to} \ & x_0 \text{ given} \\
+& x_{t+1} = x_t + h f(x_t, u_t), &&  t = 0, \ldots, \infty \\
+& u_t \in U, &&  t = 0, \ldots, \infty
+\end{align*}
+\end{itemize}
+\end{frame}
 
-Split HJB in $\leq 0$ and $\geq 0$
+\begin{frame}{HJB: informal derivation}
+\begin{columns}
+\column{.7\textwidth}
+The dynamic-programming principle:
+\begin{itemize}
+\item
+Assume $\mathbf x_0 = (x_0, x_1, x_2, x_3, \ldots)$ is the optimal trajectory from $x_0$ to the origin
+\item
+Because of the infinite horizon, the optimal trajectory $\mathbf x_1$ from $x_1$ to the origin must be
+$(x_1, x_2, x_3, \ldots)$
+\begin{itemize}
+\item
+Otherwise $(x_0, \mathbf x_1)$ would be better than $\mathbf x_0$ (contradiction)
+\end{itemize}
+\item
+If we were to know the cost-to-go $v(x_1)$ from $x_1$, then we could just solve a one-step problem
+\begin{align*}
+v(x_0) & = \min_{u_0 \in U} \{ h l(x_0, u_0) + v(x_1) \} \\
+& = \min_{u_0 \in U} \{ h l(x_0, u_0) + v(x_0 + h f(x_0, u_0)) \} \\
+\end{align*}
+\end{itemize}
+\column{.3\textwidth}
+\vspace{-5mm}
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/dp_principle.pdf}
+\end{figure}
+\end{columns}
+\end{frame}
 
-Nonconvexities come from the $\leq 0$ part, can we throw it away?
+\begin{frame}{HJB: informal derivation}
+\begin{itemize}
+\item
+If $h$ is very small
+$$
+v(x_0 + h f(x_0, u_0)) \approx v(x_0) + h \frac{\partial v}{\partial x} (x_0) f(x_0, u_0)
+$$
+\item
+Substituting
+$$
+v(x_0) = \min_{u_0 \in U} \left\{ h l(x_0, u_0) +  v(x_0) + h \frac{\partial v}{\partial x} (x_0) f(x_0, u_0) \right\}
+$$
+\item
+Simplifying $v(x_0)$ and dividing by $h$
+$$
+0 = \min_{u_0 \in U} \left\{ l(x_0, u_0) + \frac{\partial v}{\partial x} (x_0) f(x_0, u_0) \right\}
+$$
+\end{itemize}
+Why ``informal''? Where does this derivation leak? (Think at the bang bang controller)
+\end{frame}
 
-Bellman inequality
+\begin{frame}{Solving the HJB}
+The HJB equation is a nonnlinear Partial Differential Equation (PDE)
+\begin{itemize}
+\item
+Analytic solutions only in a few special cases (LQR)
+\item
+``Exact'' numerical solution is very hard (discretization of the state and control space)
+\item
+Can we still find approximate solutions that are ``good enough''?
+\end{itemize}
 
-Approximate DP formulation
+\begin{block}{``One side of the HJB equation is convex''}
+$$
+\min_{u \in U} \left\{ l(x, u) + \frac{\partial v}{\partial x} (x) f(x, u) \right\} \geq 0, \quad \text{for all } x
+$$
+is equivalent to the \textbf{Bellman inequality}
+$$
+l(x, u) + \frac{\partial v}{\partial x} (x) f(x, u) \geq 0, \quad \text{for all } x \text{ and } u \in U
+$$
+\vspace{-5mm}
+\begin{itemize}
+\item
+We can relax this condition via SOS!
+\end{itemize}
+\end{block}
+\end{frame}
 
-Simple 1d system
+\begin{frame}{Bellman inequality}
+What do we loose by enforcing only one side of the HJB equations?
+\begin{itemize}
+\item
+Let $x(t)$ and $u(t)$ be the optimal trajectory and control from $x(0)$
+\item
+Integrate the Bellman inequality along the optimal trajectory
+\begin{align*}
+0 & \leq \int_0^\infty \left[ l(x(t), u(t)) + \frac{\partial v}{\partial x} (x(t)) f(x(t), u(t)) \right] dt \\
+& = \int_0^\infty l(x(t), u(t)) dt + \int_0^\infty \dot v(x(t)) dt \\
+& = \int_0^\infty l(x(t), u(t)) dt + v(x(\infty)) - v(x(0))
+\end{align*}
+\item
+Let $v(0) = 0$, then $v(x)$ lower bounds the optimal value function
+$$
+v(x(0)) \leq \int_0^\infty l(x(t), u(t)) dt
+$$
+\end{itemize}
+\end{frame}
 
-Swing up of the pendulum
+\begin{frame}{SOS for approximate dynamic programming}
+\begin{align*}
+\max_v \ &\int_X v(x) dx \\
+\text{subject to} \ & l(x, u) + \frac{\partial v}{\partial x} (x) f(x, u) \text{ is SOS for all } x \text{ and } u \in U \\
+& v(0) = 0
+\end{align*}
+Interpretation:
+\begin{itemize}
+\item
+Constraints ensure that $v(x)$ lower bounds the value function
+\item
+Objective ``pushes up'' $v(x)$ over the set $X$
+\item
+As the degree of $v(x)$ increases, we get a better and better approximation of the value function over $X$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Toy approximate-DP problem}
+\begin{itemize}
+\item
+Scalar dynamics
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Recover the optimal controller}
+
+\end{frame}
+
+\begin{frame}{Pendulum swing up}
+	
 \end{frame}
 
 \section{Bibliography}
@@ -897,6 +1052,20 @@ Khalil - ``Nonlinear Systems''
 
 \begin{frame}{Bibliography}
 \footnotesize
+Dynamic programming:
+\begin{itemize}
+\item
+Bertsekas - ``Dynamic Programming and Optimal Control''
+\item
+Kirk - ``Optimal Control Theory an Introduction''
+\item
+Bressan, Piccoli - ``Introduction to the Mathematical Theory of Control''
+\end{itemize}
+Hamilton-Jacobi-Bellman equation:
+\begin{itemize}
+\item
+Evans - ``Partial Differential Equations''
+\end{itemize}
 Approximate dynamic programming:
 \begin{itemize}
 \item
