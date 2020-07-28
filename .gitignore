@@ -1,0 +1,9 @@
+*.aux
+*.bbl
+*.blg
+*.bst
+*.log
+*.out
+*.key
+*.synctex.gz
+.DS_store
