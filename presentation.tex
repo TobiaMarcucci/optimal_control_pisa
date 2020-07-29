@@ -1034,8 +1034,22 @@ As the degree of $v(x)$ increases, we get a better and better approximation of t
 \end{frame}
 
 \begin{frame}{Pendulum swing up
-\href{https://colab.research.google.com/github/TobiaMarcucci/optimal_control_pisa/blob/master/demos/swing_up.ipynb}{\beamergotobutton{Try this in Drake}}}
-	
+\href{https://colab.research.google.com/github/TobiaMarcucci/optimal_control_pisa/blob/master/demos/pendulum_swing_up.ipynb}{\beamergotobutton{Try this in Drake}}}
+\begin{columns}
+	\column{.5\textwidth}
+	\begin{itemize}
+		\item
+		Find a controller that stabilizes the pendulum in the upright configuration
+		\item
+		Use S-procedure to handle sines and cosines
+		\item
+		Approximate value function of degree 10
+	\end{itemize}
+	\column{.2\textwidth}
+	\begin{figure}
+		\includegraphics[width=\columnwidth]{figures/simple_pend.png}
+	\end{figure}
+\end{columns}
 \end{frame}
 
 \section{Bibliography}
@@ -1090,7 +1104,7 @@ Approximate dynamic programming:
 Software:
 \begin{itemize}
 \item
-\href{https://drake.mit.edu}{{\color{blue}Drake}}
+Drake \href{https://drake.mit.edu}{{\color{blue}https://drake.mit.edu}}
 \end{itemize}
 \end{frame}
 
