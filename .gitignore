@@ -14,7 +14,7 @@
 # Python.
 *.pyc
 *.npy
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
 # Mac.
 .DS_store
