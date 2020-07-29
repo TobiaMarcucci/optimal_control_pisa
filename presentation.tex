@@ -7,7 +7,7 @@
 \usepackage{listings}
 
 \definecolor{darkred}{rgb}{0.8,0,0}
-\definecolor{darkgreen}{rgb}{0,0.8,0}
+\definecolor{darkgreen}{rgb}{0,0.6,0}
 \definecolor{lightgray}{rgb}{0.9,0.9,0.9}
 
 \mode<presentation> {\usetheme{CambridgeUS} \usecolortheme{beaver}}
@@ -15,17 +15,28 @@
 \setbeamercolor{block title}{bg=lightgray,fg=darkred}
 \setbeamertemplate{navigation symbols}{}
 
-\title[Stability and Control Synthesis via Convex Optimization]{Stability Analysis and Optimal Control Synthesis via Convex Optimization}
+\title[Stability and Control Synthesis via Convex Optimization]{Stability Analysis and Optimal-Control Synthesis \\ via Convex Optimization}
 % control synthesis via convex optimization
 
 \author{Tobia Marcucci}
 \institute{\textit{tobiam@mit.edu}}
-\date{July 30, 2020}
+\date{Pisa \\ July 30, 2020}
 
 \begin{document}
 
 \begin{frame}
 \titlepage
+\end{frame}
+
+\begin{frame}{Before starting}
+\begin{itemize}
+\item
+These slides are available at \href{https://github.com/TobiaMarcucci/optimal_control_pisa}{{\color{blue}https://github.com/TobiaMarcucci/optimal\_control\_pisa}}
+\item
+In the same repo you'll find all the Drake demos I show in this presentation
+\item
+The buttons \beamergotobutton{Try this in Drake} will open the demos in Google Colab
+\end{itemize}
 \end{frame}
 
 \section{Introduction}
@@ -36,13 +47,15 @@
 \end{frame}
 
 \begin{frame}{Quick recap}
-The main topic so far:
+A fairly familiar problem at this point:
 \begin{align*}
 v(x_0) := \min_{u, x} \ &\int_0^\infty l(x(t), u(t)) dt \\
 \text{subject to} \ & x(0) = x_0 \\
 & \dot x(t) = f(x(t), u(t)), &&  \text{for all }t \in [0, \infty) \\
 & u(t) \in U, &&  \text{for all }t \in [0, \infty)
 \end{align*}
+\pause
+\vspace{-7mm}
 \begin{itemize}
 \item
 Pontryagin's minimum principle (\textbf{analytical}):
@@ -53,18 +66,19 @@ necessary conditions for optimality as a two-point boundary value problem
 closed-form solution only in very few special cases
 \end{itemize}
 \item
-Numerical optimization (\textbf{numerical}):
+\textbf{Numerical} optimization:
 \begin{itemize}
 \item
 in general, a nonconvex program
 \item
-for linear systems, convex objective and constraints, a convex program
+convex if system is linear, and objective and constraints are convex
 \end{itemize}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Working with time is not the only option}
-A classical example: \textbf{Lyapunov stability} is much easier in state space than in time
+\begin{frame}{Working with trajectories is not the only option}
+Classical example: \textbf{Lyapunov stability} is much easier in state space than ``in time''
+\pause
 \begin{columns}
 \column{.8\textwidth}
 \begin{itemize}
@@ -74,7 +88,7 @@ $$
 \ddot \theta(t) + \dot \theta(t) + \sin(\theta(t)) = 0
 $$
 does not have closed-form solution $\theta(t)$
-\item
+\item<3->
 Asymptotic stability ($\lim_{t \rightarrow \infty} \theta(t) = 0$) can be easily proved by showing that the energy
 $$
 v(\theta, \dot \theta) := \frac{1}{2} \dot \theta^2 - \cos(\theta)
@@ -86,33 +100,38 @@ converges to zero
 \includegraphics[width=\columnwidth]{figures/simple_pend.png}
 \end{figure}
 \end{columns}
-\begin{block}{Lyapunov theorem}
-``$\dot x = f(x)$ is stable if there exists $v(x) \geq 0$ such that $\dot v(x) = \frac{\partial v}{\partial x} (x) f(x) \leq 0$''
+\pause \pause
+\begin{block}{Lyapunov theorem (sketch)}
+$\dot x = f(x)$ is stable if there exists $v(x) \geq 0$ such that $\dot v(x) = \frac{\partial v}{\partial x} (x) f(x) \leq 0$
 \end{block}
 \end{frame}
 
 \begin{frame}{Dynamic programming}
-The state-space approach to optimal control is called \textbf{Dynamic Programming} (DP), and at its core we have the \textbf{Hamilton-Jacobi-Bellman} (HJB) equation
-\begin{align*}
+\begin{itemize}
+\item
+The state-space approach to optimal control is called \textbf{Dynamic Programming} (DP)
+\item
+At its core we have the \textbf{Hamilton-Jacobi-Bellman} (HJB) equation
+$$
 \min_{u \in U} \left\{ l(x, u) + \frac{\partial v}{\partial x} (x) f(x, u) \right\} = 0, \quad \text{for all } x
-\end{align*}
-\begin{itemize}
-\item
-Recall that $v(x_0)$ is the minimum of the optimal control problem for $x(0) = x_0$
+$$
+recall that $v(x_0)$ is the minimum of the optimal control problem for $x(0) = x_0$
 \end{itemize}
-\textbf{DP $:$ optimal control $=$ Lyapunov theorem $:$ stability}? Not quite...
+\pause
+\begin{block}{$\frac{\text{Dynamic programming}}{\text{Optimal control}} = \frac{\text{Lyapunov theorem}}{\text{Stability analisis}}\ ?$ Not quite...}
 \begin{itemize}
 \item
-In time, optimal control has similar issues to stability (hard ODEs)
+In time, optimal control has similar issues to stability (we end up with hard ODEs)
 \item
 In state space:
 \begin{itemize}
 \item
-HJB is a nasty {\color{darkred} nonlinear} partial differential {\color{darkred} equation}
+HJB is a nasty nonlinear Partial Differential Equation (PDE)
 \item
-Lyapunov conditions ($v(x) \succeq 0$, $\dot v(x) \preceq 0$) are nice {\color{darkgreen} linear} differential {\color{darkgreen} inequalities}
+Lyapunov conditions ($v(x) \geq 0$, $\dot v(x) \leq 0$) are simple linear differential inequalities
 \end{itemize}
 \end{itemize}
+\end{block}
 \end{frame}
 
 \begin{frame}{Quoting the authors}
@@ -124,7 +143,7 @@ Lyapunov conditions ($v(x) \succeq 0$, $\dot v(x) \preceq 0$) are nice {\color{d
 \includegraphics[width=\columnwidth]{figures/bellman.jpg}
 \end{figure}
 \column{.75\columnwidth}
-Bellman, \\ ``Dynamic Programming'' (1957)
+Bellman (1957), \\ ``Dynamic Programming''
 \end{columns}
 \begin{figure}[h]
 \includegraphics[width=.9\columnwidth]{figures/bellman_quote_1.png} \\
@@ -138,8 +157,8 @@ Bellman, \\ ``Dynamic Programming'' (1957)
 \includegraphics[width=\columnwidth]{figures/pontryagin.jpg}
 \end{figure}
 \column{.75\columnwidth}
-Pontryagin et al., \\
-``The Mathematical Theory of Optimal Processes'' (1962)
+Pontryagin et al. (1962), \\
+``The Mathematical Theory of Optimal Processes'' 
 \end{columns}
 
 \begin{figure}[h]
@@ -155,11 +174,9 @@ Use \textbf{convex optimization} to design functions in state space:
 SemiDefinite Programming (SDP)
 \item
 Sums-of-Squares (SOS) optimization
-%\item
-%Pretty soon we'll restrict our class of function to polynomials
 \end{itemize}
-
-We'll focus on \textbf{two main applications}:
+\pause
+\textbf{Two main applications}:
 \begin{itemize}
 \item
 Design of Lyapunov functions
@@ -173,7 +190,7 @@ Convex optimization will be a game changer here
 Approximate dynamic programming
 \begin{itemize}
 \item
-Convex optimization will still be pretty effective here
+Convex optimization will be quite effective here
 \end{itemize}
 \end{itemize}
 \end{frame}
@@ -188,24 +205,27 @@ Convex optimization will still be pretty effective here
 \begin{frame}{Convex optimization recap}
 \begin{columns}
 \column{.5\textwidth}
-With $f_0, \ldots, f_n$ convex functions
+Standard convex program:
 \begin{align*}
-\min_{x} \ &f_0(x) \\
-\text{subject to} \ & x(0) = x_0 \\
-& f_i(x) \leq 0, &&  i = 1, \ldots, m \\
-& a_i^T x = b_i, &&  i = 1, \ldots, p
+\min_{x} \ &f(x) \\
+\text{subject to} \ & x \in X
 \end{align*}
-Fundamental property:
 \begin{itemize}
 \item
-{\color{darkgreen}every local minimum is a global minimum}
+$f$ is a convex function
+\item
+$X$ is a convex set
 \end{itemize}
 \column{.5\textwidth}
 \begin{figure}
-\includegraphics[width=\columnwidth]{figures/convex_opt.png}
+\includegraphics[width=.8\columnwidth]{figures/convex_opt.png} \\
 \footnotesize Boyd, Vandenberghe - ``Convex Optimization''
 \end{figure}
 \end{columns}
+\pause
+\begin{block}{Why are we so obsessed with convex optimization?}
+Every local minimum is a \textbf{global minimum}
+\end{block}
 \end{frame}
 
 \begin{frame}{Proof of ``every local minimum is global''}
@@ -213,32 +233,37 @@ Fundamental property:
 \item
 If $x^*$ is a local minimum, there exists $r > 0$ such that
 $$
-x^* = \arg \min_x \{ f_0(x) : x \text{\ is feasible}, \|x - x^*\| \leq r \}
+x^* = \arg \min_{x \in X} \{ f(x) : \|x - x^*\| \leq r \}
 $$
+\pause
 \item
-If $x^*$ was not a global minimum, there would exist $y$ feasible such that $f_0(y) < f_0(x^*)$
+If $x^*$ was not a global minimum, there would exist $y \in X$ such that $f(y) < f(x^*)$
+\begin{itemize}
 \item
-Necessarily, $\|y - x^*\| > r$
+and, necessarily, $\|y - x^*\| > r$
+\end{itemize}
+\pause
 \item
 Take a point $z$ on the line connecting $x^*$ and $y$, distant $r/2$ from $x^*$:
 $$
-z = x^* + \theta (y - x^*) = (1 - \theta) x^* + \theta y, \quad \theta = \frac{r}{2 \|y - x^*\|}
+z := x^* + \theta (y - x^*) = (1 - \theta) x^* + \theta y, \quad \theta := \frac{r}{2 \|y - x^*\|}
 $$
+\pause
 \item
-By convexity of the feasible set, $z$ is feasible
+By convexity of the feasible set $X$, $z \in X$
+\pause
 \item
 By convexity of the objective,
 $$
-f_0(z) \leq (1 - \theta) f_0(x^*) + \theta f_0(y) < (1 - \theta) f_0(x^*) + \theta f_0(x^*) = f_0(x^*)
+f(z) \leq (1 - \theta) f(x^*) + \theta f(y) < (1 - \theta) f(x^*) + \theta f(x^*) = f_0(x^*)
 $$
 which contradicts the local optimality of $x^*$
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Classes of convex optimizations}
+\begin{frame}{A hierarchy of Convex Programs (CPs)}
 \begin{columns}
 \column{.7\textwidth}
-Many classes of Convex Programs (CPs):
 \begin{itemize}
 \item
 Linear Programs (LPs) are the easiest
@@ -247,15 +272,18 @@ SemiDefinite Programming (SDP) is a broad class of CPs that can be solved effici
 \item
 Some CPs outside the class of SDP can be quite hard
 \end{itemize}
-What do we mean by ``hard convex optimizations''? 
+\onslide<2->{
+\begin{block}{What? Hard convex optimizations?? }
 \begin{itemize}
 \item
-Interior-point methods require a function to repel a point from the boundary of the feasible set
+Optimization algorithms require to check how far a point is from being infeasible
 \item
 Some convex sets are very hard to describe mathematically!
 \item
 We'll come back to this point...
 \end{itemize}
+\end{block}
+}
 \column{.3\textwidth}
 \begin{figure}
 \includegraphics[width=\columnwidth]{figures/hierarchy.png}
@@ -264,10 +292,9 @@ We'll come back to this point...
 \end{frame}
 
 \begin{frame}{Definite symmetric matrices}
-Equivalent statements for a symmetric $A$:
+\begin{block}{Definition}
+Equivalent definitions for a symmetric matrix $A$ to be \textbf{positive semidefinite} ($A \succeq 0$):
 \begin{itemize}
-\item
-$A$ is \textbf{positive semidefinite} (denoted as $A \succeq 0$)
 \item
 $x^T A x \geq 0$ for all $x$
 \item
@@ -275,10 +302,12 @@ The eigenvalues $\lambda_1, \ldots, \lambda_n$ of $A$ are nonnegative
 \item
 There exists $L$ such that $A = L^T L$
 \end{itemize}
-What's the \textbf{relation with convex optimization}?
+\end{block}
+\pause
+Why do we care about positive semidefinite matrices?
 \begin{itemize}
 \item
-let 
+The set $\mathbb S_n^+ := \{ (a_{11},\dots, a_{nn}) : A \succeq 0 \}$ is convex, where
 $$
 A = \begin{bmatrix}
 a_{11} & a_{12} & \cdots & a_{1n} \\
@@ -287,34 +316,36 @@ a_{12} & a_{22} & \cdots & a_{2n} \\
 a_{1n} & a_{2n} & \cdots & a_{nn} \\
 \end{bmatrix}
 $$
-\item
-the set $\mathbb S_n^+ := \{ (a_{11},\dots, a_{nn}) : A \succeq 0 \}$ is convex
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Proof of ``$\mathbb S_n^+$ is convex''}
 \begin{columns}
-	\column{.53\textwidth}
+\column{.53\textwidth}
 Just use the definition:
 \begin{itemize}
-	\item
-	assume $A_1 \succeq 0$ and $A_2 \succeq 0$
-	\item
-	let $A := \theta A_1 + (1- \theta) A_2$ with $\theta \in [0, 1]$
-	\item
-	then $x^T A x = \theta x^T A_1 x + (1- \theta) x^T A_2 x \geq 0$ for all $x$
+\item
+Assume $A_1 \succeq 0$ and $A_2 \succeq 0$
+\item
+Take a convex combination of  $A_1$ and $A_2$:
+$$
+A := \theta A_1 + (1- \theta) A_2, \quad \theta \in [0, 1]
+$$
+\item
+Then, for all $x$,
+$$x^T A x = \theta x^T A_1 x + (1- \theta) x^T A_2 x \geq 0$$
 \end{itemize}
-	\column{.45\textwidth}
-	\begin{figure}
-		\includegraphics[width=\columnwidth]{figures/psdcone.jpeg}
-		\footnotesize Boyd, Vandenberghe - ``Convex Optimization''
-	\end{figure}
+\column{.45\textwidth}
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/psdcone.jpeg}
+\footnotesize Boyd, Vandenberghe - ``Convex Optimization''
+\end{figure}
 \end{columns}
 \end{frame}
 
 \begin{frame}{Semidefinite program in standard form}
 \begin{columns}
-	\column{.5\textwidth}
+	\column{.45\textwidth}
 \begin{align*}
 \min_{X} \ & \text{tr}(C X) \\
 \text{subject to} \ & \text{tr}(A_i X) = b_i, &&  i = 1, \ldots, p \\
@@ -323,7 +354,7 @@ Just use the definition:
 \column{.5\textwidth}
 \begin{itemize}
 \item
-recall that, e.g., $\text{tr}(C X) = \sum_{i,j=1}^n C_{ij} X_{ij}$
+recall that $\text{tr}(C X) = \sum_{i,j=1}^n C_{ij} x_{ij}$, i.e., an arbitrary linear function of the entries of $A$
 \item
 linear objective function (convex)
 \item
@@ -332,16 +363,17 @@ $p$ linear equality constraints (convex)
 one semideifinite constraint (convex)
 \end{itemize}
 \end{columns}
-\vspace{5mm}
-Why is SDP efficient?
+\pause
+\begin{block}{Why can we solve SDPs efficiently?}
 \begin{itemize}
 \item
-What's a nice function to repel a point $(a_{11},\dots, a_{nn})$ from the boundary of the feasible set?
+We need a function to tell how far is a point $(a_{11},\dots, a_{nn})$ from being infeasible
 \item
 Interior of the feasible set is $\{ (a_{11},\dots, a_{nn}) : \lambda_1 > 0, \ldots, \lambda_n > 0 \}$
 \item
-Natural candidate: $$- \sum_{i=1}^n \ln (\lambda_i) = - \ln( \prod_{i=1}^n \lambda_i ) = - \ln (\det A)$$
+Natural candidate is $$- \sum_{i=1}^n \ln (\lambda_i) = - \ln \left( \prod_{i=1}^n \lambda_i \right) = - \ln (\det A)$$
 \end{itemize}
+\end{block}
 \end{frame}
 
 \section{Sums-of-squares optimization}
@@ -358,18 +390,20 @@ Ultimately, we want to use convex optimization to design functions $v(x) : \math
 \item
 \textbf{First step}: parameterize $v(x)$ with a finite number of coefficients (optimization variables)
 \end{itemize}
+\pause
 \begin{block}{Nonnlinear parameterization}
 $$
-v(x) = \psi (x, \alpha)
+v(x) := \psi (x, \alpha)
 $$
 \vspace{-5mm}
 \begin{itemize}
 \item
-$\alpha \in \mathbb R^r$ is a vector of coefficients
+$\alpha \in \mathbb R^r$ is the vector of coefficients
 \item
 $\psi$ is a given nonlinear scalar function
 \end{itemize}
 \end{block}
+\pause
 Say we want $v(0) = 0$:
 \begin{itemize}
 
@@ -381,25 +415,26 @@ $\psi (0, \alpha) = 0$ is a \textbf{nonnlinear equality constraint} in $\alpha$ 
 \begin{frame}{Linear parameterization}
 \begin{block}{Linear parameterization}
 \begin{columns}
-	\column{.5\textwidth}
+\column{.5\textwidth}
 $$
-v(x) = \alpha^T \psi(x)
+v(x) := \alpha^T \psi(x)
 $$
 \begin{itemize}
 \item
-$\alpha \in \mathbb R^r$ is a vector of coefficients
+$\alpha \in \mathbb R^r$ is the vector of coefficients
 \item
 $\psi$ is an $r$-vector of the basis functions
 \end{itemize}
-	\column{.35\textwidth}
-	\begin{figure}
-	\includegraphics[width=\columnwidth]{figures/linear_parameterization.pdf}
+\column{.35\textwidth}
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/linear_parameterization.pdf}
 \end{figure}
 \end{columns}
 \end{block}
+\pause
 Let's try again $v(0) = 0$:
 \begin{itemize}
-	\item
+\item
 $\alpha^T \psi(0) = 0$ is a \textbf{linear equality constraint} in $\alpha$ (convex)
 \end{itemize}
 \end{frame}
@@ -407,17 +442,18 @@ $\alpha^T \psi(0) = 0$ is a \textbf{linear equality constraint} in $\alpha$ (con
 \begin{frame}{Other ways we might want to constrain $v(x)$?}
 \begin{block}{Nonnegativity constraints}
 \begin{columns}
-	\column{.6\textwidth}
+\column{.6\textwidth}
 For example, a Lyapunov function must be nonnegative
 $$
-v(x) = \alpha^T \psi(x) \geq 0 \text{ for all } x
+v(x) := \alpha^T \psi(x) \geq 0 \text{ for all } x
 $$
-	\column{.35\textwidth}
+\column{.35\textwidth}
 \begin{figure}
-	\includegraphics[width=\columnwidth]{figures/nonnegative.pdf}
+\includegraphics[width=\columnwidth]{figures/nonnegative.pdf}
 \end{figure}
 \end{columns}
 \end{block}
+\pause
 Let's analyze the set
 $$
 \{ \alpha : \alpha^T \psi(x) \geq 0 \text{ for all } x\} \subseteq \mathbb R^r
@@ -425,56 +461,37 @@ $$
 \end{frame}
 
 \begin{frame}{Nonnegativity constraints and linear parameterizations}
-\begin{block}{A seemingly positive observation}
-The set $\{ \alpha : \alpha^T \psi(x) \geq 0\}$ is convex
+\begin{block}{The set $\{ \alpha : \alpha^T \psi(x) \geq 0\}$ is convex}
 \begin{itemize}
 \item
-Assume $v_1(x) = \alpha_1^T \psi(x) \geq 0$ and $v_2(x) = \alpha_2^T \psi(x) \geq 0$
+Assume $\alpha_1$ is such that $v_1(x) := \alpha_1^T \psi(x) \geq 0$, and the same for $\alpha_2$
 \item
-Then, for $\theta \in [0, 1]$,
+Take a convex combination of $\alpha_1$ and $\alpha_2$
 $$
-v(x) = [\theta \alpha_1 + (1 - \theta) \alpha_2]^T \psi(x) = \theta v_1(x)  + (1 - \theta) v_2(x)  \geq 0
+\alpha := \theta \alpha_1 + (1 - \theta) \alpha_2, \quad \theta \in [0, 1]
 $$
+\item
+Then $v(x) := \alpha^T \psi(x) = \theta v_1(x)  + (1 - \theta) v_2(x)  \geq 0$
 \end{itemize}
 \end{block}
-Is this enough to make the optimization over nonnegative $v(x)$ easy?
+\pause
+Does this mean that optimizing over nonnegative $v(x)$ is easy?
 \begin{itemize}
 \item
 No, in general, no
 \item
-Except for a few cases, for a given $\alpha$, determining if $v(x) = \alpha^T \psi(x) \geq 0$ is NP-hard!
-\item
-We don't have a nice function to repel a point $\alpha$ from the boundary of the feasible set
+Except for a few cases, for a given $\alpha$, determining if $\alpha^T \psi(x) \geq 0$ is NP-hard!
+%\item
+%We don't have a nice function to repel a point $\alpha$ from the boundary of the feasible set
 \end{itemize}
 \end{frame}
 
-%\begin{frame}{A simple observation}
-%%Constraining $\alpha$ so that $v(x) = \alpha^T \psi(x)$ is nonnegative seems pretty hard...
-%\begin{block}{Sums-Of-Squares (SOS) decomposition}
-%If we can find a matrix $Q \succeq 0$ and a vector of basis functions $m(x)$ such that
-%$$
-%v(x) = \alpha^T \psi(x) = m^T(x) Q m(x) \text{ for all } x
-%$$
-%then we certainly have $v(x) \geq 0$
-%\end{block}
-%There must be some sort of relation between the entries $\psi$ and $m$:
-%\begin{itemize}
-%\item
-%Expanding the equality above we have
-%$$
-%\sum_{i=1}^r \alpha_i \psi_i(x) = \sum_{i,j=1}^q Q_{ij}m_i(x) m_j(x)
-%$$
-%\item
-%Every entry of $\psi$ must be equal to the product of two elements of $m$
-%\end{itemize}
-%\end{frame}
-
-\begin{frame}{Sums-of-squares parameterization}
-%The linear parameterization $v(x) = \alpha^T \psi(x)$ can't handle nonnegativity constraints
+\begin{frame}{Back to the black board}
 What about a parameterization that is nonnegative by construction?
+\pause
 \begin{block}{Sums Of Squares (SOS)}
 $$
-v(x) = \psi^T(x) Q \psi(x) = \sum_{i,j=1}^r Q_{ij}\psi_i(x) \psi_j(x), \quad Q \succeq 0
+v(x) := \psi^T(x) Q \psi(x), \quad Q \succeq 0
 $$
 \begin{itemize}
 \item
@@ -483,23 +500,30 @@ $Q$ is an $r$-by-$r$ matrix of coefficients (entries of $Q$ are our optimization
 $\psi$ is an $r$-vector of basis functions
 \end{itemize}
 \end{block}
+\pause
 Remarks:
 \begin{itemize}
 \item
-$v$ is still linear in $Q$ (e.g. $v(0) = 0$ is a \textbf{linear constraint} on the entries of $Q$)
+$v(x)= \sum_{i,j=1}^r Q_{ij}\psi_i(x) \psi_j(x)$ is still linear in $Q$
+\begin{itemize}
+\item
+E.g., $v(0) = 0$ is a \textbf{linear constraint} on the entries of $Q$
+\end{itemize}
 \item
 $Q \succeq 0$ is a \textbf{convex constraint}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{SOS constraints}
+\begin{frame}{Use SOS as a constraints}
 What if we want to certify that a given function $v(x)$ is nonnegative?
+\pause
 \begin{itemize}
 \item
 We can try to find a SOS decomposition $v(x) = \psi^T(x) Q \psi(x)$, with $Q \succeq 0$
 \item
-The issue however is how to pick $\psi(x)$...
+The issue is how to pick $\psi(x)$...
 \end{itemize}
+\pause
 \begin{block}{Example}
 \begin{columns}
 \column{.7\textwidth}
@@ -507,9 +531,9 @@ The issue however is how to pick $\psi(x)$...
 \item
 Consider $v(x) = \frac{1}{\sqrt{1 + x^2}}$
 \item
-This function is nonnegative for all $x$
+Nonnegative for all $x$
 \item
-I don't quite know how to pick $\psi(x)$ here...
+I don't quite know how to pick $\psi(x)$ here
 \end{itemize}
 \column{.25\textwidth}
 \begin{figure}
@@ -517,17 +541,20 @@ I don't quite know how to pick $\psi(x)$ here...
 \end{figure}
 \end{columns}
 \end{block}
+\pause
 Can you think of any class of functions for which this approach might work?
 \end{frame}
 
 \begin{frame}{SOS polynomials}
-With $v(x)$ polynomial of degree $2d$, we can just fill $\psi(x)$ with all the monomials up to degree $d$
 \begin{block}{Example}
 \begin{itemize}
 \item
-Given $v(x) = 2 - 2 x + 3 x^2 + 2 x^3 + x^4$, we set $\psi(x) = (1, x, x^2)$
+Given $v(x) = 2 - 2 x + 3 x^2 + 2 x^3 + x^4$, we want $\psi(x)$ such that $v(x) = \psi^T(x) Q \psi(x)$
 \item
-We look for $Q \succeq 0$ such that
+We can just pick $\psi(x) := (1, x, x^2)$
+\item
+Then, we look for $Q \succeq 0$ such that
+\vspace{-5mm}
 $$
 2 - 2 x + 3 x^2 + 2 x^3 + x^4 =
 \begin{bmatrix} 1 \\ x \\ x^2 \end{bmatrix}^T
@@ -538,83 +565,37 @@ $$
 Comparing the coefficients we get \textbf{linear constraints} on $Q$, e.g., $Q_{11} = 2$
 \end{itemize}
 \end{block}
+\pause
 \begin{itemize}
 \item
-This works even if the coefficients of $v$ are (linear functions of) optimization variables!
+For $v(x)$ \textbf{polynomial} of degree $2d$, we fill $\psi(x)$ with all the \textbf{monomials} up to degree $d$
+\pause
 \item
-Other classes of functions could do the job, but polynomials have many other useful properties
+This works even if the coefficients of $v$ are (linear functions of) optimization variables
+\pause
+\item
+Other classes of functions could work, polynomials have many properties
 \end{itemize}
-
 \end{frame}
-
-%\begin{frame}{Sums-of-squares polynomials}
-%What about certifying that a polynomial $v(x)$ is nonnegative for all $x$?
-%\begin{itemize}
-%\item
-%\end{itemize}
-%Consider the scalar case $x \in R$ and show that with generic basis functions we can't ask $\frac{d v}{d x} (x) \geq 0$ for all $x$
-%From here one we'll stick to polynomials but we could think of something different
-%\end{frame}
-
-%\begin{frame}{Sums-of-squares constraints}
-%What if we want a given function $v(x)$ to be nonnegative?
-%\begin{itemize}
-%\item
-%In Lyapunov analysis we require $\frac{\partial v}{\partial x} (x) f(x) \leq 0$ for all $x$
-%\end{itemize}
-%\end{frame}
-
-%\begin{frame}{Sums-of-squares constraints}
-%What if we want a linear functional of $v(x)$ to be nonnegative?
-%\begin{itemize}
-%\item
-%In Lyapunov analysis we require $\frac{\partial v}{\partial x} (x) f(x) \leq 0$ for all $x$
-%\end{itemize}
-%\begin{block}{Example}
-%\begin{itemize}
-%\item
-%Consider a polynomial $v(x) = \alpha_0 + \alpha_1 x + \alpha_2 x^2 + \alpha_3 x^3$
-%\begin{itemize}
-%\item
-%Simple linear parameterization (not necessarily SOS)
-%\item
-%Basis functions $\phi_i(x)$ are monomials $x^i$
-%\end{itemize}
-%\item
-%Say we want $\frac{d v}{d x} (x) \geq 0$ for all $x$
-%\item
-%For $Q \succeq 0$, we require
-%\vspace{-3mm}
-%$$
-%\frac{d v}{d x} (x) = \alpha_1 + 2 \alpha_2 x + 3 \alpha_3 x^2 = \begin{bmatrix} 1 \\ x\end{bmatrix}^T Q \begin{bmatrix} 1 \\ x\end{bmatrix} = Q_{11} + 2 Q_{12} x + Q_{22} x^2
-%$$
-%\vspace{-4mm}
-%\item
-%These are just linear constraints: $\alpha_1 = Q_{11}$, $2 \alpha_2 = 2 Q_{12}$, $3 \alpha_3 = Q_{22}$
-%\item
-%Do you see what's special about polynomials here? 
-%\end{itemize}
-%\end{block}
-%\end{frame}
 
 \begin{frame}{The power of SOS optimization \href{https://colab.research.google.com/github/TobiaMarcucci/optimal_control_pisa/blob/master/demos/six_hump_camel.ipynb}{\beamergotobutton{Try this in Drake}}}
 \begin{columns}
-	\column{.7\textwidth}
-\begin{itemize}
-\item
+\column{.7\textwidth}
 Minimize the six-hump-camel function
 $$
 \min_x p(x) = 4 x_1^2 + x_1 x_2 - 4 x_2^2 - 2.1 x_1^4 + 4 x_2^4 + x_1^6 / 3
 $$
+\onslide<2->{
+\begin{itemize}
 \item
 Write it as
 \begin{align*}
 \max_{ \lambda, Q} \ & \lambda \\
 \text{subject to} \ &  p(x) - \lambda \text{ is SOS}
 \end{align*}
-\item
-Where ``is SOS'' means ``equal to a SOS polynomial in $x$ parameterized by $Q$''
+where ``is SOS'' means ``equal to a SOS polynomial in $x$ parameterized by $Q$''
 \end{itemize}
+}
 \column{.3\textwidth}
 \vspace{-5mm}
 \begin{figure}
@@ -626,7 +607,7 @@ Where ``is SOS'' means ``equal to a SOS polynomial in $x$ parameterized by $Q$''
 \begin{frame}{Did we just solve global optimization over polynomials?}
 \begin{columns}
 \column{.6\textwidth}
-Not all the nonnegative polynomials are SOS...
+Not all the nonnegative polynomials are SOS!
 \begin{itemize}
 \item
 Hilbert in 1888\footnotemark showed that ``SOS = nonnegative'' only in 3 cases\footnotemark:
@@ -638,43 +619,58 @@ Quadratic polynomials (degree 2)
 \item
 Bivariate quartics (2 variables, degree 4)
 \end{itemize}
+\onslide<2->{
 \item
 Famous counterexample by Motzkin
 $$x_1^4 x_2^2 + x_1^2 x_2^4 + 1 - 3 x_1^2 x_2 ^2$$
 \item
-However, counterexamples are ``rare enough that people give names to them''
+Counterexamples are ``rare enough that people give names to them''
+}
 \end{itemize}
 \column{.25\textwidth}
 \begin{figure}
 \includegraphics[width=.4\columnwidth]{figures/hilbert.jpg}
+\onslide<2->{
+\vspace{-10mm}
 \includegraphics[width=\columnwidth]{figures/motzkin.pdf}
+}
 \end{figure}
 \end{columns}
 \footnotetext[1]{Hilbert - ``Ueber die Darstellung definiter Formen als Summe von Formenquadraten''}
 \footnotetext[2]{See also \href{https://en.wikipedia.org/wiki/Hilbert\%27s_seventeenth_problem}{{\color{blue}Hilbert's 17th problem}}}
 \end{frame}
 
-\begin{frame}{One more trick: S-procedure}
+\begin{frame}{One more trick: S-procedure for constrained SOS}
 \begin{itemize}
 \item
-To check if the polynomial $v(x)$ is nonnegative over the set
+To constrain the polynomial $v(x)$ to be nonnegative over the set
 $$
 \{ x :  g(x) = 0 \}
 $$
-with $g(x)$ polynomial, we can solve
+with $g(x)$ polynomial, we can add a new polynomial $\lambda(x)$ and write
 $$
-\text{find a polynomial } \lambda : v(x) + \lambda(x) g(x) \text{ is SOS}
+v(x) + \lambda(x) g(x) \text{ is SOS}
 $$
+\end{itemize}
+\pause
+\begin{columns}
+\column{.65\textwidth}
+\begin{itemize}
 \item
 Similarly, for the set
 $$
 \{ x :  g(x) \leq 0 \}
 $$
-we can solve
+we can add a new SOS polynomial $\lambda(x)$ and write
 $$
-\text{find a SOS polynomial } \lambda : v(x) + \lambda(x) g(x) \text{ is SOS}
+v(x) + \lambda(x) g(x) \text{ is SOS}
 $$
 \end{itemize}
+\column{.3\textwidth}
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/s_procedure.pdf}
+\end{figure}
+\end{columns}
 \end{frame}
 
 \section{Design of Lyapunov functions}
@@ -726,7 +722,7 @@ $$
 \end{itemize}
 \column{.4\textwidth}
 \begin{figure}
-	\includegraphics[width=\columnwidth]{figures/lyapunov_poly.pdf}
+\includegraphics[width=\columnwidth]{figures/lyapunov_poly.pdf}
 \end{figure}
 \end{columns}
 \end{frame}
@@ -1055,6 +1051,11 @@ As the degree of $v(x)$ increases, we get a better and better approximation of t
 \section{Bibliography}
 \begin{frame}{Bibliography}
 \footnotesize
+Software:
+\begin{itemize}
+\item
+Drake \href{https://drake.mit.edu}{{\color{blue}https://drake.mit.edu}}
+\end{itemize}
 Convex optimization:
 \begin{itemize}
 \item
@@ -1074,10 +1075,12 @@ Parrilo - ``Structured semidefinite programs and semialgebraic geometry methods 
 \item
 Blekherman, Parrilo, Thomas - ``Semidefinite Optimization and Convex Algebraic Geometry''
 \end{itemize}
-Lyapunov stability:
+Stability theory:
 \begin{itemize}
 \item
 Khalil - ``Nonlinear Systems''
+\item
+Slotine, Li - ``Applied nonlinear control''
 \end{itemize}
 \end{frame}
 
@@ -1086,7 +1089,7 @@ Khalil - ``Nonlinear Systems''
 Dynamic programming:
 \begin{itemize}
 \item
-Bertsekas - ``Dynamic Programming and Optimal Control''
+Bertsekas - ``Dynamic Programming and Optimal Control, Volume 1''
 \item
 Kirk - ``Optimal Control Theory an Introduction''
 \item
@@ -1100,11 +1103,15 @@ Evans - ``Partial Differential Equations''
 Approximate dynamic programming:
 \begin{itemize}
 \item
-\end{itemize}
-Software:
-\begin{itemize}
+Bertsekas - ``Dynamic Programming and Optimal Control, Volume 2''
 \item
-Drake \href{https://drake.mit.edu}{{\color{blue}https://drake.mit.edu}}
+De Farias, Van Roy - ``The linear programming approach to approximate dynamic programming''
+\item
+Lasserre et al. - ``Nonlinear optimal control via occupation measures and LMI-relaxations''
+\item
+Wang, Boyd - ``Approximate dynamic programming via iterated Bellman inequalities''
+\item
+Other works from Lygeros' group, e.g. Summers et al. - ``Approximate Dynamic Programming via Sum of Squares Programming''
 \end{itemize}
 \end{frame}
 
